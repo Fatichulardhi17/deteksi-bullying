@@ -1,4 +1,4 @@
-"""
+﻿"""
 Backend API Flask untuk sistem deteksi bullying.
 Expose endpoint untuk prediksi individual, batch, dan analisis percakapan.
 """
@@ -16,9 +16,27 @@ from bullying_detection.inference.detector import BullyingDetector
 app = Flask(__name__)
 CORS(app)  # Izinkan akses dari React frontend
 
-# ─────────────────────────────────────────
+
+def route(rule, **options):
+    """Register endpoint dengan dan tanpa prefix /api.
+
+    Tanpa prefix: untuk `python api.py` lokal + proxy Vite.
+    Dengan prefix: untuk routing vercel.json (`/api/(.*)` -> service app).
+    """
+    def decorator(view):
+        for i, r in enumerate((rule, "/api" + rule)):
+            app.add_url_rule(
+                r,
+                endpoint=f"{view.__name__}_{i}",
+                view_func=view,
+                **options,
+            )
+        return view
+    return decorator
+
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Inisialisasi model
-# ─────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 detector = BullyingDetector()
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "bullying_detection", "saved_model")
@@ -32,9 +50,9 @@ except Exception as e:
     detector.train(model_name="logistic_regression", save_dir=MODEL_DIR)
 
 
-# ─────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Helper
-# ─────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def prediction_to_dict(result) -> dict:
     """Konversi PredictionResult ke dict JSON-serializable."""
@@ -53,11 +71,11 @@ def prediction_to_dict(result) -> dict:
     }
 
 
-# ─────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Endpoints
-# ─────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-@app.route("/", methods=["GET"])
+@route("/", methods=["GET"])
 def index():
     return jsonify({
         "name": "Bullying Detection API",
@@ -71,7 +89,7 @@ def index():
     })
 
 
-@app.route("/health", methods=["GET"])
+@route("/health", methods=["GET"])
 def health():
     return jsonify({
         "status": "ok",
@@ -80,7 +98,7 @@ def health():
     })
 
 
-@app.route("/predict", methods=["POST"])
+@route("/predict", methods=["POST"])
 def predict():
     """
     Prediksi satu teks.
@@ -106,7 +124,7 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/predict/batch", methods=["POST"])
+@route("/predict/batch", methods=["POST"])
 def predict_batch():
     """
     Prediksi banyak teks sekaligus.
@@ -141,7 +159,7 @@ def predict_batch():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/analyze", methods=["POST"])
+@route("/analyze", methods=["POST"])
 def analyze_conversation():
     """
     Analisis percakapan (list pesan berurutan).
@@ -194,9 +212,9 @@ def analyze_conversation():
         return jsonify({"error": str(e)}), 500
 
 
-# ─────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Main
-# ─────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 if __name__ == "__main__":
     print("=" * 50)
