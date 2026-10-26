@@ -1,2 +1,18 @@
+[project]
+name = "deteksi-bullying"
+version = "1.0.0"
+requires-python = ">=3.9"
+dependencies = [
+    "flask>=3.0.0",
+    "flask-cors>=4.0.0",
+    "scikit-learn>=1.5.0",
+    "numpy>=2.0.0",
+    "scipy>=1.13.0",
+    "pandas>=2.2.0",
+]
+
+[tool.uv]
+package = false
+
 [tool.vercel]
 entrypoint = "api:app"
